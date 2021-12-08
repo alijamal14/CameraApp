@@ -1,0 +1,80 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+<select id="listCameras"> </select>
+<button onclick="document.getElementById('listCameras').dispatchEvent(new Event('change'));">Use</button>
+<video style="
+    width: 300px;
+" id="player" controls autoplay></video>
+<button id="capture">Capture</button>
+<canvas id="canvas" width=320 height=240></canvas>
+<button id="download" onclick='download()'>Download</button>
+<script>
+    const constraints = {
+        video: true,
+    };
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then((stream) => {
+            player.srcObject = stream;
+        });
+    ////
+    navigator.mediaDevices.enumerateDevices();
+    navigator.mediaDevices.enumerateDevices()
+        .then(function (devices) {
+            navigator.permissions.query({ name: 'camera' }).then(function (result) {
+                if (result.state !== 'granted') {
+                    alert('Checking camera permission');
+                    location.reload();
+                }
+
+            });
+            devices.forEach(function (device) {
+                console.log(device.kind + ": " + device.label +
+                    " id = " + device.deviceId);
+                var node = document.createElement("option");                 // Create a <li> node
+                node.value = device.deviceId;
+                var textnode = document.createTextNode(device.label);
+                node.appendChild(textnode);
+                document.getElementById('listCameras').appendChild(node);
+                document.getElementById('listCameras').onchange = function (e) {
+                    UseCamera(e.target.value);
+                }
+            });
+        })
+        .catch(function (err) {
+            console.log(err.name + ": " + err.message);
+        });
+
+  const player = document.getElementById('player');
+  const canvas = document.getElementById('canvas');
+  const context = canvas.getContext('2d');
+  const captureButton = document.getElementById('capture');
+
+  
+
+  captureButton.addEventListener('click', () => {
+    // Draw the video frame to the canvas.
+    context.drawImage(player, 0, 0, canvas.width, canvas.height);
+  });
+
+  // Attach the video stream to the video element and autoplay.
+    function UseCamera(id) {
+        const constraints = {
+            video: {
+                deviceId: {exact: id}
+            },
+        };
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then((stream) => {
+                player.srcObject = stream;
+            });
+    }
+    
+
+    var download = function(){
+  var link = document.createElement('a');
+  link.download = 'filename.png';
+  link.href = document.getElementById('canvas').toDataURL()
+  link.click();
+}
+</script>
